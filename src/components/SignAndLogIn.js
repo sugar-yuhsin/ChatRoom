@@ -17,7 +17,6 @@ function SignIn() {
         alert("登入失敗：" + error.message);
       });
   };
-
   return (
     <div>
       <h2>登入帳號</h2>
