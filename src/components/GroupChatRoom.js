@@ -8,11 +8,18 @@ const GroupChatRoom = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
   useEffect(() => {
     // 監聽使用者登入狀態
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+        if(currentUser){
+            const email = currentUser.email;
+            const userName = email.substring(0, email.indexOf("@"));
+            setUser({email, userName});
+        }else{
+            setUser(null);
+        }
     });
     return () => unsubscribe();
   }, []);
@@ -21,7 +28,7 @@ const GroupChatRoom = () => {
     if (newMessage.trim() === "") return;
     const message = {
       text: newMessage,
-      sender: user.email,
+      sender: user.userName,
       timestamp: new Date().toISOString(),
       room: currentRoom,
     };
@@ -32,7 +39,12 @@ const GroupChatRoom = () => {
   return (
     <div style={styles.container}>
       <div style={styles.leftContainer}>
-        <h2>Chat Rooms</h2>
+        <div style={styles.userInfo}>
+            <img style = {styles.userHead}
+            src="/img/userheadpng/1.png" alt="User "
+            />
+            <h2>{user?user.userName:"Guest"}</h2>
+        </div>
         <ul style={styles.roomList}>
           {rooms.map((room, index) => (
             <li
@@ -80,12 +92,11 @@ const styles = {
   container: {
     display: "flex",
     height: "100vh",
-    backgroundColor: "#f5f5f5",
   },
   leftContainer: {
     width: "30%",
     backgroundColor: "white",
-    borderRadius: "10px",
+    borderRadius: "20px",
     padding: "20px",
     margin: "10px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -93,7 +104,7 @@ const styles = {
   rightContainer: {
     flex: 1,
     backgroundColor: "white",
-    borderRadius: "10px",
+    borderRadius: "20px",
     padding: "20px",
     margin: "10px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -114,15 +125,19 @@ const styles = {
   },
   chatBox: {
     flex: 1,
-    border: "1px solid #ccc",
+    // border: "1px solid #ccc",
     borderRadius: "10px",
     padding: "10px",
     overflowY: "scroll",
     marginBottom: "20px",
+    // backgroundColor: "#f9f9f9",
   },
   message: {
     marginBottom: "10px",
     textAlign: "left",
+    backgroundColor: "#f1f6ff",
+    padding: "20px",
+    borderRadius: "10px",
   },
   inputContainer: {
     display: "flex",
@@ -141,6 +156,17 @@ const styles = {
     backgroundColor: "#007bff",
     color: "white",
     cursor: "pointer",
+  },
+  userHead:{
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    marginRight: "10px",
+  },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    marginBottom: "20px",
   },
 };
 
