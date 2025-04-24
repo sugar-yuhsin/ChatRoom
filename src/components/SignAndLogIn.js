@@ -1,24 +1,34 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth , db} from "../firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc , setDoc } from "firebase/firestore";
 
 const SignAndLogIn = () => {
   const navigate = useNavigate();
   const [isSingIn , setIsSignIn] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userName, setUserName] = useState("");
   const [isHovered,setIsHovered] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try{
       if (isSingIn) {
-        const user = signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         console.log("Sign In", { email, password });
       } else {
-        const user = createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
         console.log("Sign Up", { email, password });
+
+        await setDoc(doc(db, "users", user.uid) ,{
+          userName: userName || email.split("@")[0],
+          phone: "unknown",
+          address: "unknown",
+          email: user.email,
+        })
       }
       navigate("/chatroom");
     } catch (error) {

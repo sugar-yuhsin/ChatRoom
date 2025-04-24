@@ -1,16 +1,40 @@
 import React, { useState, useEffect } from "react";
-import { auth } from "../firebase";
+import { auth , db} from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import {collection, addDoc , query , where , getDocs , onSnapshot} from "firebase/firestore";
+import  CreateGroup  from "./CreateGroup"; // 匯入 CreateGroup 組件
 
 const GroupChatRoom = () => {
-  const [rooms, setRooms] = useState(["General", "Tech", "Random"]); // 聊天室列表
+  const [rooms, setRooms] = useState(["General"]); // 聊天室列表
   const [currentRoom, setCurrentRoom] = useState("General"); // 當前選擇的聊天室
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [allUsers, setAllUsers] = useState([]); // 儲存所有使用者的狀態
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false); // 是否顯示創建群組的狀態
 
   useEffect(() => {
+
+    const fetchUsers = async () => {
+        try{
+            const userCollection = collection(db, "users");
+            const userSnapshot = await getDocs(userCollection);
+            const userList = userSnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setAllUsers(userList);
+            console.log("All Users here!: ", userList);
+        }catch (error) {
+            console.error("Error fetching users: ", error);
+        }
+    };
+
+    // 使用立即執行的異步函式
+    (async () => {
+        await fetchUsers();
+    })();
+
     // 監聽使用者登入狀態
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         if(currentUser){
@@ -24,7 +48,29 @@ const GroupChatRoom = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleSendMessage = () => {
+  useEffect(() => {
+    const fetchMessages = () => {
+      const messagesQuery = query(
+        collection(db, "messages"),
+        where("room", "==", currentRoom) // 僅獲取當前聊天室的訊息
+      );
+  
+      const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+        const fetchedMessages = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMessages(fetchedMessages); // 更新訊息狀態
+      });
+  
+      return unsubscribe; // 清理監聽器
+    };
+  
+    const unsubscribe = fetchMessages();
+    return () => unsubscribe();
+  }, [currentRoom]); // 當聊天室改變時重新獲取訊息
+
+  const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
     const message = {
       text: newMessage,
@@ -32,18 +78,27 @@ const GroupChatRoom = () => {
       timestamp: new Date().toISOString(),
       room: currentRoom,
     };
-    setMessages([...messages, message]);
-    setNewMessage("");
+    try {
+        // 將訊息存儲到 Firestore
+        await addDoc(collection(db, "messages"), message);
+        setNewMessage(""); // 清空輸入框
+      } catch (error) {
+        console.error("Error sending message: ", error);
+      }
   };
+
 
   return (
     <div style={styles.container}>
       <div style={styles.leftContainer}>
         <div style={styles.userInfo}>
             <img style = {styles.userHead}
-            src="/img/userheadpng/1.png" alt="User "
+            src="/img/userheadpng/1.png" alt="User"
             />
             <h2>{user?user.userName:"Guest"}</h2>
+            <button style={styles.button} onClick={() => setIsCreatingGroup(true)} >
+                Create Group
+            </button>
         </div>
         <ul style={styles.roomList}>
           {rooms.map((room, index) => (
@@ -61,14 +116,23 @@ const GroupChatRoom = () => {
         </ul>
       </div>
       <div style={styles.rightContainer}>
+        {isCreatingGroup ? (
+            <CreateGroup
+                allUsers={allUsers}
+                onFinish={(groupName, selectedUsers) => {
+                    console.log("Group Name: ", groupName);
+                    console.log("Selected Users: ", selectedUsers);
+                    setRooms([...rooms, groupName]);
+                    setIsCreatingGroup(false);
+                }}
+            />
+        ) : null}
         <h2>{currentRoom} Room</h2>
         <div style={styles.chatBox}>
-          {messages
-            .filter((msg) => msg.room === currentRoom)
-            .map((msg, index) => (
-              <div key={index} style={styles.message}>
-                <strong>{msg.sender}:</strong> {msg.text}
-              </div>
+            {messages.map((message) => (
+                <div key={message.id} style={styles.message}>
+                <strong>{message.sender}</strong>: {message.text}
+                </div>
             ))}
         </div>
         <div style={styles.inputContainer}>
