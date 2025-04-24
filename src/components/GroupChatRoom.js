@@ -109,13 +109,18 @@ const GroupChatRoom = () => {
     <div style={styles.container}>
       <div style={styles.leftContainer}>
         <div style={styles.userInfo}>
-            <img style = {styles.userHead}
-            src="/img/userheadpng/1.png" alt="User"
-            />
-            <h2>{user?user.userName:"Guest"}</h2>
-            <button style={styles.button} onClick={() => setIsCreatingGroup(true)} >
-                Create Group
-            </button>
+          <img
+            style={styles.userHead}
+            src="/img/userheadpng/1.png"
+            alt="User"
+          />
+          <h2>{user ? user.userName : "Guest"}</h2>
+          <img
+            src="img/icon/create-group.png"
+            alt="Create Group"
+            style={styles.icon}
+            onClick={() => setIsCreatingGroup(true)} // 點擊切換到 Create Group
+          />
         </div>
         <ul style={styles.roomList}>
           {rooms.map((room, index) => (
@@ -134,36 +139,39 @@ const GroupChatRoom = () => {
       </div>
       <div style={styles.rightContainer}>
         {isCreatingGroup ? (
-            <CreateGroup
-                allUsers={allUsers}
-                onFinish={(groupName, selectedUsers) => {
-                    console.log("Group Name: ", groupName);
-                    console.log("Selected Users: ", selectedUsers);
-                    setRooms([...rooms, groupName]);
-                    setIsCreatingGroup(false);
-                }}
-            />
-        ) : null}
-        <h2>{currentRoom} Room</h2>
-        <div style={styles.chatBox}>
-            {messages.map((message) => (
-                <div key={message.id} style={styles.message}>
-                <strong>{message.sender}</strong>: {message.text}
-                </div>
-            ))}
-        </div>
-        <div style={styles.inputContainer}>
-          <input
-            type="text"
-            placeholder="Type your message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            style={styles.input}
+          <CreateGroup
+            allUsers={allUsers}
+            onFinish={(groupName, selectedUsers) => {
+              console.log("Group Name: ", groupName);
+              console.log("Selected Users: ", selectedUsers);
+              setRooms([...rooms, groupName]); // 更新聊天室列表
+              setIsCreatingGroup(false); // 創建完成後返回聊天室
+            }}
           />
-          <button onClick={handleSendMessage} style={styles.button}>
-            Send
-          </button>
-        </div>
+        ) : (
+          <>
+            <h2>{currentRoom} Room</h2>
+            <div style={styles.chatBox}>
+              {messages.map((message) => (
+                <div key={message.id} style={styles.message}>
+                  <strong>{message.sender}</strong>: {message.text}
+                </div>
+              ))}
+            </div>
+            <div style={styles.inputContainer}>
+              <input
+                type="text"
+                placeholder="Type your message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                style={styles.input}
+              />
+              <button onClick={handleSendMessage} style={styles.button}>
+                Send
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -178,7 +186,7 @@ const styles = {
     width: "30%",
     backgroundColor: "white",
     borderRadius: "20px",
-    padding: "20px",
+    padding: "30px",
     margin: "10px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
   },
@@ -186,7 +194,7 @@ const styles = {
     flex: 1,
     backgroundColor: "white",
     borderRadius: "20px",
-    padding: "20px",
+    padding: "30px",
     margin: "10px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
     display: "flex",
@@ -247,8 +255,17 @@ const styles = {
   userInfo: {
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: "20px",
   },
+  icon:{
+    display:"flex",
+    alignItems:"right",
+    width: "30px",
+    height: "30px",
+    marginLeft: "auto",
+    cursor: "pointer",
+  }
 };
 
 export default GroupChatRoom;

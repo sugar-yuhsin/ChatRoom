@@ -39,7 +39,7 @@ return(
             {allUsers.map((user) => (
                 <li key={user.id}>
                     <label>
-                        <input
+                        <input 
                             type="checkbox"
                             checked={selectedUsers.includes(user.id)}
                             onChange={() => handleSelectUser(user.id)}
