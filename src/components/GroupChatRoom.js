@@ -70,6 +70,23 @@ const GroupChatRoom = () => {
     return () => unsubscribe();
   }, [currentRoom]); // 當聊天室改變時重新獲取訊息
 
+  useEffect(() => {
+    const fetchGroups = async () => {
+        try {
+            const groupsCollection = collection(db, "groups");
+            const groupsSnapshot = await getDocs(groupsCollection);
+            const groupsList = groupsSnapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setRooms(groupsList.map(group => group.groupName));
+        } catch (error) {
+            console.error("Error fetching groups: ", error);
+        }
+    };
+    fetchGroups()
+  },[])
+
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
     const message = {

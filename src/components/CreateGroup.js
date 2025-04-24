@@ -1,4 +1,5 @@
 import React ,{use, useState} from "react";
+import { auth , db} from "../firebase";
 import { collection , addDoc } from "firebase/firestore";
 
 const CreateGroup = ({allUsers , onFinish})=>{
@@ -12,12 +13,22 @@ const CreateGroup = ({allUsers , onFinish})=>{
         }
     };
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         const groupName = prompt("Enter your group name");
         if(groupName && groupName.trim() !== ""){
-            onFinish(groupName , selectedUsers);
-        }
+           try{
+                await addDoc(collection(db, "groups"),{
+                    groupName: groupName.trim(),
+                    members: selectedUsers,
+                    createdAt: new Date().toISOString(),
+                });
+
+                onFinish(groupName , selectedUsers)
+           }catch(error){
+                console.error("Error creating group: ", error);
+           }
     };
+};
 return(
     <div>
         <h2>Create Group</h2>
@@ -44,8 +55,8 @@ return(
             Create
         </button>
     </div>
-);
+)};
 
-};
+
 
 export default CreateGroup;
