@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { auth , db} from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import {collection, addDoc , query , where , getDocs , onSnapshot} from "firebase/firestore";
+import {collection, addDoc , query , where , getDocs , onSnapshot , orderBy} from "firebase/firestore";
 import  CreateGroup  from "./CreateGroup"; // 匯入 CreateGroup 組件
+import { useNavigate } from "react-router-dom";
+
 
 const GroupChatRoom = () => {
   const [rooms, setRooms] = useState(["General"]); // 聊天室列表
@@ -12,6 +14,8 @@ const GroupChatRoom = () => {
   const [user, setUser] = useState(null);
   const [allUsers, setAllUsers] = useState([]); // 儲存所有使用者的狀態
   const [isCreatingGroup, setIsCreatingGroup] = useState(false); // 是否顯示創建群組的狀態
+  const navigate = useNavigate();
+  
 
   useEffect(() => {
 
@@ -52,7 +56,8 @@ const GroupChatRoom = () => {
     const fetchMessages = () => {
       const messagesQuery = query(
         collection(db, "messages"),
-        where("room", "==", currentRoom) // 僅獲取當前聊天室的訊息
+        where("room", "==", currentRoom) ,// 僅獲取當前聊天室的訊息
+        orderBy("timestamp", "asc") // 按時間戳排序
       );
   
       const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
@@ -121,7 +126,18 @@ const GroupChatRoom = () => {
             style={styles.icon}
             onClick={() => setIsCreatingGroup(true)} // 點擊切換到 Create Group
           />
+          <img
+            src="/img/icon/log-out.png"
+            alt="Logout"
+            style={styles.icon}
+            onClick={() => {
+              auth.signOut();
+              setUser(null);
+              navigate("/"); // 登出後返回首頁
+            }} // 點擊登出
+            />
         </div>
+        <hr style={styles.line}></hr>
         <ul style={styles.roomList}>
           {rooms.map((room, index) => (
             <li
@@ -151,6 +167,7 @@ const GroupChatRoom = () => {
         ) : (
           <>
             <h2>{currentRoom} Room</h2>
+            <hr style={styles.line}></hr>
             <div style={styles.chatBox}>
               {messages.map((message) => (
                 <div key={message.id} style={styles.message}>
@@ -265,7 +282,12 @@ const styles = {
     height: "30px",
     marginLeft: "auto",
     cursor: "pointer",
-  }
+  },
+  line:{
+    width: "100%",
+    backgroundColor: "#ccc",
+    color: "#ccc",
+  },
 };
 
 export default GroupChatRoom;

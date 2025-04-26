@@ -31,7 +31,10 @@ const CreateGroup = ({allUsers , onFinish})=>{
 };
 return(
     <div>
-        <h2>Create Group</h2>
+        <div style={styles.createGroupBar}>
+            <h2>Create Group</h2>
+            <img src = "/img/icon/back.png" alt = "back" style = {{width: "30px" , height: "30px"}} onClick={() => onFinish(null , null)}/>
+        </div>
         {allUsers && allUsers.length === 0 ? (
         <p>Loading users...</p>
         ) : (
@@ -104,6 +107,26 @@ const styles = {
         border: "1px solid white",
         transition: "background-color 0.3s ease",
       },
+    submit:{
+        display: "flex",
+        border: "2px solid rgb(191, 198, 199)",
+        background: "white",
+        alignItems: "center",
+        height: "40px",
+        width: "20%",
+        margin: "0 auto",
+        cursor: "pointer",
+        transition: "background-color 0.3s ease",
+        justifyContent: "center",
+        fontSize: "18px",
+        fontWeihght: "bold",
+    },
+    createGroupBar:{
+        display:"flex",
+        alignItems:"center",
+        justifyContent:"space-between",
+        padding: "10px",
+    }
 }
 
 export default CreateGroup;
