@@ -1,96 +1,100 @@
 import React, { useState, useEffect } from "react";
-import { auth , db} from "../firebase";
+import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import {collection, addDoc , query , where , getDocs , onSnapshot , orderBy} from "firebase/firestore";
-import  CreateGroup  from "./CreateGroup"; // 匯入 CreateGroup 組件
+import { collection, addDoc, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
+import CreateGroup from "./CreateGroup"; 
 import { useNavigate } from "react-router-dom";
 
-
 const GroupChatRoom = () => {
-  const [rooms, setRooms] = useState(["General"]); // 聊天室列表
-  const [currentRoom, setCurrentRoom] = useState("General"); // 當前選擇的聊天室
+  const [rooms, setRooms] = useState(["General"]);
+  const [currentRoom, setCurrentRoom] = useState("General");
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [user, setUser] = useState(null);
-  const [allUsers, setAllUsers] = useState([]); // 儲存所有使用者的狀態
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false); // 是否顯示創建群組的狀態
+  const [allUsers, setAllUsers] = useState([]);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isLoadingMes, setIsLoadingMes] = useState(false);
   const navigate = useNavigate();
-  
 
   useEffect(() => {
-
     const fetchUsers = async () => {
-        try{
-            const userCollection = collection(db, "users");
-            const userSnapshot = await getDocs(userCollection);
-            const userList = userSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setAllUsers(userList);
-            console.log("All Users here!: ", userList);
-        }catch (error) {
-            console.error("Error fetching users: ", error);
-        }
-    };
-
-    // 使用立即執行的異步函式
-    (async () => {
-        await fetchUsers();
-    })();
-
-    // 監聽使用者登入狀態
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-        if(currentUser){
-            const email = currentUser.email;
-            const userName = email.substring(0, email.indexOf("@"));
-            setUser({email, userName});
-        }else{
-            setUser(null);
-        }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const fetchMessages = () => {
-      const messagesQuery = query(
-        collection(db, "messages"),
-        where("room", "==", currentRoom) ,// 僅獲取當前聊天室的訊息
-        orderBy("timestamp", "asc") // 按時間戳排序
-      );
-  
-      const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-        const fetchedMessages = snapshot.docs.map((doc) => ({
+      try {
+        const userCollection = collection(db, "users");
+        const userSnapshot = await getDocs(userCollection);
+        const userList = userSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setMessages(fetchedMessages); // 更新訊息狀態
-      });
-  
-      return unsubscribe; // 清理監聽器
+        setAllUsers(userList);
+      } catch (error) {
+        console.error("Error fetching users: ", error);
+      }
     };
-  
-    const unsubscribe = fetchMessages();
-    return () => unsubscribe();
-  }, [currentRoom]); // 當聊天室改變時重新獲取訊息
+
+    fetchUsers();
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        const email = currentUser.email;
+        const userName = currentUser.userName;
+        setUser({ email, userName });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
 
   useEffect(() => {
+    if (!currentRoom) return;
+
+    setIsLoadingMes(true); 
+
+    const messagesQuery = query(
+      collection(db, "messages"),
+      where("rooms", "==", currentRoom),
+      orderBy("timestamp", "asc")
+    );
+
+    const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
+      const fetchedMessages = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMessages(fetchedMessages);
+      setIsLoadingMes(false);
+    });
+
+    return () => unsubscribeMessages();
+  }, [currentRoom]);
+
+  useEffect(() => {
+    if (!user) return;
+
     const fetchGroups = async () => {
-        try {
-            const groupsCollection = collection(db, "groups");
-            const groupsSnapshot = await getDocs(groupsCollection);
-            const groupsList = groupsSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            setRooms(groupsList.map(group => group.groupName));
-        } catch (error) {
-            console.error("Error fetching groups: ", error);
-        }
+      try {
+        const groupsCollection = collection(db, "groups");
+        const groupsSnapshot = await getDocs(groupsCollection);
+        const groupsList = groupsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        const filteredGroups = groupsList.filter(
+          (group) =>
+            group.groupName === "General" || 
+            (user && group.members.includes(user.userName))
+        );
+
+        setRooms(filteredGroups.map((group) => group.groupName));
+      } catch (error) {
+        console.error("Error fetching groups: ", error);
+      }
     };
-    fetchGroups()
-  },[])
+
+    fetchGroups();
+  }, [user]);
 
   const handleSendMessage = async () => {
     if (newMessage.trim() === "") return;
@@ -101,43 +105,43 @@ const GroupChatRoom = () => {
       room: currentRoom,
     };
     try {
-        // 將訊息存儲到 Firestore
-        await addDoc(collection(db, "messages"), message);
-        setNewMessage(""); // 清空輸入框
-      } catch (error) {
-        console.error("Error sending message: ", error);
-      }
+      await addDoc(collection(db, "messages"), message);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message: ", error);
+    }
   };
 
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      setUser(null);
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error: ", error);
+    }
+  };
 
   return (
     <div style={styles.container}>
       <div style={styles.leftContainer}>
         <div style={styles.userInfo}>
-          <img
-            style={styles.userHead}
-            src="/img/userheadpng/1.png"
-            alt="User"
-          />
+          <img style={styles.userHead} src="/img/userheadpng/1.png" alt="User" />
           <h2>{user ? user.userName : "Guest"}</h2>
           <img
-            src="img/icon/create-group.png"
+            src="/img/icon/create-group.png"
             alt="Create Group"
             style={styles.icon}
-            onClick={() => setIsCreatingGroup(true)} // 點擊切換到 Create Group
+            onClick={() => setIsCreatingGroup(true)}
           />
           <img
             src="/img/icon/log-out.png"
             alt="Logout"
             style={styles.icon}
-            onClick={() => {
-              auth.signOut();
-              setUser(null);
-              navigate("/"); // 登出後返回首頁
-            }} // 點擊登出
-            />
+            onClick={handleLogout}
+          />
         </div>
-        <hr style={styles.line}></hr>
+        <hr style={styles.line} />
         <ul style={styles.roomList}>
           {rooms.map((room, index) => (
             <li
@@ -153,27 +157,30 @@ const GroupChatRoom = () => {
           ))}
         </ul>
       </div>
+
       <div style={styles.rightContainer}>
         {isCreatingGroup ? (
           <CreateGroup
             allUsers={allUsers}
             onFinish={(groupName, selectedUsers) => {
-              console.log("Group Name: ", groupName);
-              console.log("Selected Users: ", selectedUsers);
-              setRooms([...rooms, groupName]); // 更新聊天室列表
-              setIsCreatingGroup(false); // 創建完成後返回聊天室
+              setRooms((prev) => [...prev, groupName]);
+              setIsCreatingGroup(false);
             }}
           />
         ) : (
           <>
             <h2>{currentRoom} Room</h2>
-            <hr style={styles.line}></hr>
+            <hr style={styles.line} />
             <div style={styles.chatBox}>
-              {messages.map((message) => (
-                <div key={message.id} style={styles.message}>
-                  <strong>{message.sender}</strong>: {message.text}
-                </div>
-              ))}
+              {isLoadingMes ? (
+                <p style={styles.loading}>Loading messages...</p>
+              ) : (
+                messages.map((message) => (
+                  <div key={message.id} style={styles.message}>
+                    <strong>{message.sender}</strong>: {message.text}
+                  </div>
+                ))
+              )}
             </div>
             <div style={styles.inputContainer}>
               <input
@@ -217,6 +224,24 @@ const styles = {
     display: "flex",
     flexDirection: "column",
   },
+  userInfo: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "20px",
+  },
+  userHead: {
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    marginRight: "10px",
+  },
+  icon: {
+    width: "30px",
+    height: "30px",
+    marginLeft: "10px",
+    cursor: "pointer",
+  },
   roomList: {
     listStyleType: "none",
     padding: 0,
@@ -231,12 +256,10 @@ const styles = {
   },
   chatBox: {
     flex: 1,
-    // border: "1px solid #ccc",
     borderRadius: "10px",
     padding: "10px",
     overflowY: "scroll",
     marginBottom: "20px",
-    // backgroundColor: "#f9f9f9",
   },
   message: {
     marginBottom: "10px",
@@ -263,30 +286,17 @@ const styles = {
     color: "white",
     cursor: "pointer",
   },
-  userHead:{
-    width: "50px",
-    height: "50px",
-    borderRadius: "50%",
-    marginRight: "10px",
-  },
-  userInfo: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "20px",
-  },
-  icon:{
-    display:"flex",
-    alignItems:"right",
-    width: "30px",
-    height: "30px",
-    marginLeft: "auto",
-    cursor: "pointer",
-  },
-  line:{
+  line: {
     width: "100%",
     backgroundColor: "#ccc",
-    color: "#ccc",
+    height: "1px",
+    border: "none",
+  },
+  loading: {
+    fontSize: "18px",
+    color: "#007bff",
+    textAlign: "center",
+    marginTop: "20px",
   },
 };
 
