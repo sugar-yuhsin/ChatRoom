@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, serverTimestamp } from "firebase/firestore";
 import CreateGroup from "./CreateGroup"; 
 import { useNavigate } from "react-router-dom";
 
@@ -33,11 +33,15 @@ const GroupChatRoom = () => {
 
     fetchUsers();
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         const email = currentUser.email;
-        const userName = currentUser.userName;
-        setUser({ email, userName });
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userName = userDocSnap.data().userName;
+          setUser({ email, userName });
+        }
       } else {
         setUser(null);
       }
@@ -47,26 +51,44 @@ const GroupChatRoom = () => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
     if (!currentRoom) return;
 
-    setIsLoadingMes(true); 
+    setIsLoadingMes(true);
 
     const messagesQuery = query(
       collection(db, "messages"),
-      where("rooms", "==", currentRoom),
+      where("room", "==", currentRoom),
       orderBy("timestamp", "asc")
     );
 
-    const unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
-      const fetchedMessages = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMessages(fetchedMessages);
-      setIsLoadingMes(false);
-    });
+    const unsubscribeMessages = onSnapshot(
+      messagesQuery,
+      (snapshot) => {
+        if (isMounted) {
+          const fetchedMessages = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setMessages(fetchedMessages);
+          setIsLoadingMes(false);
+        }
+      },
+      (error) => {
+        if (isMounted) {
+          console.error("Error fetching messages: ", error);
+          setIsLoadingMes(false);
+        }
+      }
+    );
 
-    return () => unsubscribeMessages();
+    return () => {
+      isMounted = false;
+      if (unsubscribeMessages) {
+        unsubscribeMessages();
+      }
+    };
   }, [currentRoom]);
 
   useEffect(() => {
@@ -101,7 +123,7 @@ const GroupChatRoom = () => {
     const message = {
       text: newMessage,
       sender: user.userName,
-      timestamp: new Date().toISOString(),
+      timestamp: serverTimestamp(),  // 使用 serverTimestamp 來取得正確的時間戳
       room: currentRoom,
     };
     try {

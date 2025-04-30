@@ -1,7 +1,7 @@
 import React, { use, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth , db} from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword , GoogleAuthProvider , signInWithPopup } from "firebase/auth";
 import { doc , setDoc } from "firebase/firestore";
 
 const SignAndLogIn = () => {
@@ -28,7 +28,7 @@ const SignAndLogIn = () => {
         console.log("Sign Up", { email, password });
 
         await setDoc(doc(db, "users", user.uid), {
-          userName: userName || email.split("@")[0],
+          userName: email.split("@")[0],
           phone: phone || "unknown",
           address: address || "unknown",
           email: email,
@@ -42,8 +42,23 @@ const SignAndLogIn = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn =  async ()=> {
     console.log("Google Sign In");
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      console.log("Google Sign In", user);
+      await setDoc(doc(db, "users", user.uid), {
+        userName: user.displayName || email.split("@")[0],
+        phone: user.phoneNumber || "unknown",
+        address:  "unknown",
+        email: user.email,
+      } , { merge: true });
+      navigate("/chatroom");
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+    }
   };
 
   return (
@@ -115,17 +130,22 @@ const SignAndLogIn = () => {
               
             </>
           )}
-          <button
-            type="submit"
-            style={{
-              ...styles.submit,
-              background: isHovered ? "#dfd8d8" : "white",
-            }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {isSignIn ? "Sign In" : "Sign Up"}
-          </button>
+          <div style ={styles.submitcontainer}>
+            <button
+              type="submit"
+              style={{
+                ...styles.submit,
+                background: isHovered ? "#dfd8d8" : "white",
+              }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              {isSignIn ? "Sign In" : "Sign Up"}
+            </button>
+            <img src="/img/icon/google.jpg" alt="Google" style={{ width: "30px", height: "30px", marginTop: "10px" }} 
+              onClick={handleGoogleSignIn}
+            />
+          </div>
         </form>
       )}
     </div>
@@ -182,7 +202,12 @@ const styles = {
     color: "#007bff",
     textAlign: "center",
     marginTop: "20px 0",
-  }
+  },
+  submitcontainer:{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   
 }
 
