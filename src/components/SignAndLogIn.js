@@ -2,7 +2,7 @@ import React, { use, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth , db} from "../firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword , GoogleAuthProvider , signInWithPopup } from "firebase/auth";
-import { doc , setDoc } from "firebase/firestore";
+import { doc , setDoc , getDoc } from "firebase/firestore";
 
 const SignAndLogIn = () => {
   const navigate = useNavigate();
@@ -21,6 +21,15 @@ const SignAndLogIn = () => {
     try {
       if (isSignIn) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (!userDocSnap.exists()) {
+          alert("User does not exist. Please sign up first.");
+          setLoading(false);
+          return;
+        }
         console.log("Sign In", { email, password });
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -28,7 +37,8 @@ const SignAndLogIn = () => {
         console.log("Sign Up", { email, password });
 
         await setDoc(doc(db, "users", user.uid), {
-          userName: email.split("@")[0],
+          uid: user.uid,
+          userName:userName ||email.split("@")[0],
           phone: phone || "unknown",
           address: address || "unknown",
           email: email,
@@ -37,6 +47,17 @@ const SignAndLogIn = () => {
       navigate("/chatroom");
     } catch (error) {
       console.error("Error signing in/up", error);
+      if (error.code === "auth/email-already-in-use") {
+        alert("This email is already in use. Please use a different email.");
+      } else if (error.code === "auth/weak-password") {
+        alert("The password is too weak. Please use a stronger password.");
+      } else if (error.code === "auth/invalid-email") {
+        alert("The email address is invalid. Please enter a valid email.");
+      } else if (error.code === "auth/wrong-password") {
+        alert("Incorrect password. Please try again.");
+      } else {
+        alert("An error occurred: " + error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -48,13 +69,27 @@ const SignAndLogIn = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
       console.log("Google Sign In", user);
-      await setDoc(doc(db, "users", user.uid), {
-        userName: user.displayName || email.split("@")[0],
-        phone: user.phoneNumber || "unknown",
-        address:  "unknown",
-        email: user.email,
-      } , { merge: true });
+      
+      if (!userDocSnap.exists()) {
+        // 如果文件不存在，創建新文件
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          userName: user.displayName || user.email.split("@")[0],
+          phone: user.phoneNumber || "unknown",
+          address: "unknown",
+          email: user.email,
+        });
+      }
+      // await setDoc(doc(db, "users", user.uid), {
+      //   userName: user.displayName || email.split("@")[0],
+      //   phone: user.phoneNumber || "unknown",
+      //   address:  "unknown",
+      //   email: user.email,
+      // } , { merge: true });
       navigate("/chatroom");
     } catch (error) {
       console.error("Error signing in with Google", error);
@@ -153,7 +188,7 @@ const SignAndLogIn = () => {
 };
 
 const styles = {
-  box:{
+  box: {
     width: "30%",
     background: "white",
     borderRadius: "10px",
@@ -173,16 +208,16 @@ const styles = {
     flexDirection: "column",
     gap: "20px",
   },
-  input:{
+  input: {
     padding: "10px",
     background: "#fffafa",
-    borderRadius:"50px",
+    borderRadius: "50px",
     border: "0px solid #ccc",
     width: "40%",
     height: "20px",
     margin: "0 auto",
   },
-  submit:{
+  submit: {
     border: "2px solid rgb(191, 198, 199)",
     background: "white",
     height: "40px",
@@ -191,24 +226,67 @@ const styles = {
     cursor: "pointer",
     transition: "background-color 0.3s ease",
   },
-  h1:{
-    fontSize: "10.5rem !important", //no change 
+  h1: {
+    fontSize: "10.5rem !important", //no change
     fontWeight: "bold",
     color: "#002c5c",
     marginBottom: "20px",
   },
-  loading:{
+  loading: {
     fontSize: "18px",
     color: "#007bff",
     textAlign: "center",
     marginTop: "20px 0",
   },
-  submitcontainer:{
+  submitcontainer: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  
-}
+
+  // Media Queries for RWD
+  "@media (max-width: 1024px)": {
+    box: {
+      width: "50%", // 調整寬度
+      margin: "5% auto",
+    },
+    input: {
+      width: "60%", // 調整輸入框寬度
+    },
+    h1: {
+      fontSize: "8rem", // 縮小標題字體
+    },
+  },
+  "@media (max-width: 768px)": {
+    box: {
+      width: "70%", // 調整寬度
+      margin: "5% auto",
+    },
+    input: {
+      width: "80%", // 調整輸入框寬度
+    },
+    h1: {
+      fontSize: "6rem", // 縮小標題字體
+    },
+    submit: {
+      width: "40%", // 調整按鈕寬度
+    },
+  },
+  "@media (max-width: 480px)": {
+    box: {
+      width: "90%", // 調整寬度
+      margin: "5% auto",
+    },
+    input: {
+      width: "90%", // 調整輸入框寬度
+    },
+    h1: {
+      fontSize: "4rem", // 縮小標題字體
+    },
+    submit: {
+      width: "60%", // 調整按鈕寬度
+    },
+  },
+};
 
 export default SignAndLogIn;

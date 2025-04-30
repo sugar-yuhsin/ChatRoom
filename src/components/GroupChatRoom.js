@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, serverTimestamp, updateDoc, setDoc } from "firebase/firestore";
 import CreateGroup from "./CreateGroup"; 
 import { useNavigate } from "react-router-dom";
+import Profile from "./Profile";
 
 const GroupChatRoom = () => {
   const [rooms, setRooms] = useState(["General"]);
@@ -14,6 +15,7 @@ const GroupChatRoom = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [isLoadingMes, setIsLoadingMes] = useState(false);
+  const [isProfileVisible, setIsProfileVisible] = useState(false); // 新增狀態
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,10 +23,16 @@ const GroupChatRoom = () => {
       try {
         const userCollection = collection(db, "users");
         const userSnapshot = await getDocs(userCollection);
-        const userList = userSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+        const userList = userSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            uid: data.uid || doc.id, // 確保 uid 存在
+            userName: data.userName || "Unknown User",
+            phone: data.phone || "Unknown",
+            address: data.address || "Unknown",
+          };
+        });
         setAllUsers(userList);
       } catch (error) {
         console.error("Error fetching users: ", error);
@@ -38,9 +46,37 @@ const GroupChatRoom = () => {
         const email = currentUser.email;
         const userDocRef = doc(db, "users", currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
+
         if (userDocSnap.exists()) {
-          const userName = userDocSnap.data().userName;
-          setUser({ email, userName });
+          const userData = userDocSnap.data();
+          const currentUserData = {
+            uid: currentUser.uid,
+            email,
+            userName: userData.userName,
+            phone: userData.phone,
+            address: userData.address,
+          };
+          setUser(currentUserData);
+
+          // 確保用戶加入 General 群組
+          const generalGroupRef = doc(db, "groups", "General");
+          const generalGroupSnap = await getDoc(generalGroupRef);
+
+          if (generalGroupSnap.exists()) {
+            const generalGroupData = generalGroupSnap.data();
+            if (!generalGroupData.members.includes(currentUserData.uid)) {
+              await updateDoc(generalGroupRef, {
+                members: [...generalGroupData.members, currentUserData.uid],
+              });
+            }
+          } else {
+            // 如果 General 群組不存在，創建它
+            await setDoc(generalGroupRef, {
+              groupName: "General",
+              members: [currentUserData.uid],
+              createdAt: new Date().toISOString(),
+            });
+          }
         }
       } else {
         setUser(null);
@@ -51,8 +87,6 @@ const GroupChatRoom = () => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
     if (!currentRoom) return;
 
     setIsLoadingMes(true);
@@ -66,29 +100,20 @@ const GroupChatRoom = () => {
     const unsubscribeMessages = onSnapshot(
       messagesQuery,
       (snapshot) => {
-        if (isMounted) {
-          const fetchedMessages = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-          setMessages(fetchedMessages);
-          setIsLoadingMes(false);
-        }
+        const fetchedMessages = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setMessages(fetchedMessages);
+        setIsLoadingMes(false);
       },
       (error) => {
-        if (isMounted) {
-          console.error("Error fetching messages: ", error);
-          setIsLoadingMes(false);
-        }
+        console.error("Error fetching messages: ", error);
+        setIsLoadingMes(false);
       }
     );
 
-    return () => {
-      isMounted = false;
-      if (unsubscribeMessages) {
-        unsubscribeMessages();
-      }
-    };
+    return () => unsubscribeMessages();
   }, [currentRoom]);
 
   useEffect(() => {
@@ -103,11 +128,18 @@ const GroupChatRoom = () => {
           ...doc.data(),
         }));
 
+        // 過濾出包含當前用戶的群組
         const filteredGroups = groupsList.filter(
-          (group) =>
-            group.groupName === "General" || 
-            (user && group.members.includes(user.userName))
+          (group) => group.members.includes(user.uid)
         );
+
+        // 確保 General 群組存在於 rooms 中
+        if (!filteredGroups.some((group) => group.groupName === "General")) {
+          filteredGroups.push({
+            groupName: "General",
+            members: user.uid,
+          });
+        }
 
         setRooms(filteredGroups.map((group) => group.groupName));
       } catch (error) {
@@ -147,44 +179,63 @@ const GroupChatRoom = () => {
   return (
     <div style={styles.container}>
       <div style={styles.leftContainer}>
-        <div style={styles.userInfo}>
-          <img style={styles.userHead} src="/img/userheadpng/1.png" alt="User" />
-          <h2>{user ? user.userName : "Guest"}</h2>
-          <img
-            src="/img/icon/create-group.png"
-            alt="Create Group"
-            style={styles.icon}
-            onClick={() => setIsCreatingGroup(true)}
+        {isProfileVisible ? (
+          <Profile
+            user={user}
+            onback={() => setIsProfileVisible(false)} // 返回聊天室
+            updateUser={(updateData) => {
+              setUser((prev) => ({ ...prev, ...updateData }));
+            }
+            } // 更新用戶資料
           />
-          <img
-            src="/img/icon/log-out.png"
-            alt="Logout"
-            style={styles.icon}
-            onClick={handleLogout}
-          />
-        </div>
-        <hr style={styles.line} />
-        <ul style={styles.roomList}>
-          {rooms.map((room, index) => (
-            <li
-              key={index}
-              style={{
-                ...styles.roomItem,
-                backgroundColor: currentRoom === room ? "#f0f0f0" : "white",
-              }}
-              onClick={() => setCurrentRoom(room)}
-            >
-              {room}
-            </li>
-          ))}
-        </ul>
+        ) : (
+          <>
+            <div style={styles.userInfo}>
+              <img
+                style={styles.userHead}
+                src="/img/userheadpng/1.png"
+                alt="User"
+                onClick={() => setIsProfileVisible(true)} // 點擊切換到 Profile
+              />
+              <h2>{user ? user.userName : "Guest"}</h2>
+              <img
+                src="/img/icon/create-group.png"
+                alt="Create Group"
+                style={styles.icon}
+                onClick={() => setIsCreatingGroup(true)}
+              />
+              <img
+                src="/img/icon/log-out.png"
+                alt="Logout"
+                style={styles.icon}
+                onClick={handleLogout}
+              />
+            </div>
+            <hr style={styles.line} />
+            <ul style={styles.roomList}>
+              {rooms.map((room, index) => (
+                <li
+                  key={index}
+                  style={{
+                    ...styles.roomItem,
+                    backgroundColor: currentRoom === room ? "#f0f0f0" : "white",
+                  }}
+                  onClick={() => setCurrentRoom(room)}
+                >
+                  {room}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
 
       <div style={styles.rightContainer}>
         {isCreatingGroup ? (
           <CreateGroup
             allUsers={allUsers}
-            onFinish={(groupName, selectedUsers) => {
+            user={user}
+            onFinish={(groupName) => {
               setRooms((prev) => [...prev, groupName]);
               setIsCreatingGroup(false);
             }}
@@ -319,6 +370,89 @@ const styles = {
     color: "#007bff",
     textAlign: "center",
     marginTop: "20px",
+  },
+
+  // Media Queries for RWD
+  "@media screen and (max-width: 1024px)": {
+    container: {
+      flexDirection: "column", // 將左右容器堆疊
+    },
+    leftContainer: {
+      width: "100%", // 左容器佔滿寬度
+      margin: "10px 0",
+    },
+    rightContainer: {
+      width: "100%", // 右容器佔滿寬度
+      margin: "10px 0",
+    },
+    userHead: {
+      width: "40px", // 縮小用戶頭像
+      height: "40px",
+    },
+    icon: {
+      width: "25px", // 縮小圖標
+      height: "25px",
+    },
+    roomItem: {
+      fontSize: "14px", // 縮小房間列表字體
+    },
+    message: {
+      fontSize: "14px", // 縮小訊息字體
+    },
+  },
+  "@media screen and (max-width: 768px)": {
+    container: {
+      flexDirection: "column", // 將左右容器堆疊
+    },
+    leftContainer: {
+      width: "100%", // 左容器佔滿寬度
+      margin: "10px 0",
+    },
+    rightContainer: {
+      width: "100%", // 右容器佔滿寬度
+      margin: "10px 0",
+    },
+    userHead: {
+      width: "35px", // 縮小用戶頭像
+      height: "35px",
+    },
+    icon: {
+      width: "20px", // 縮小圖標
+      height: "20px",
+    },
+    roomItem: {
+      fontSize: "12px", // 縮小房間列表字體
+    },
+    message: {
+      fontSize: "12px", // 縮小訊息字體
+    },
+  },
+  "@media screen and (max-width: 480px)": {
+    container: {
+      flexDirection: "column", // 將左右容器堆疊
+    },
+    leftContainer: {
+      width: "100%", // 左容器佔滿寬度
+      margin: "10px 0",
+    },
+    rightContainer: {
+      width: "100%", // 右容器佔滿寬度
+      margin: "10px 0",
+    },
+    userHead: {
+      width: "30px", // 縮小用戶頭像
+      height: "30px",
+    },
+    icon: {
+      width: "15px", // 縮小圖標
+      height: "15px",
+    },
+    roomItem: {
+      fontSize: "10px", // 縮小房間列表字體
+    },
+    message: {
+      fontSize: "10px", // 縮小訊息字體
+    },
   },
 };
 
