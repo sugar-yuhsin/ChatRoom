@@ -21,6 +21,7 @@ import Profile from "./Profile";
 import "../css/GroupChatRoom.css"; // 匯入 CSS 檔案
 import Unsend from "./Unsend";
 import Search from "./Search";
+import Gif from "./Gif"; // 引入 Gif 組件
 
 const GroupChatRoom = () => {
   const [rooms, setRooms] = useState(["General"]);
@@ -34,6 +35,7 @@ const GroupChatRoom = () => {
   const [isProfileVisible, setIsProfileVisible] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false); // 新增這一行
+  const [showGifPicker, setShowGifPicker] = useState(false); // 新增 GIF 選擇器狀態變數
 
   const navigate = useNavigate();
 
@@ -235,6 +237,29 @@ const GroupChatRoom = () => {
     setSelectedMessage(null);
   };
 
+  // 新增：處理 GIF 選擇和發送
+  const handleGifSelect = async (gifData) => {
+    if (!user) return;
+
+    try {
+      await addDoc(collection(db, "messages"), {
+        text: "[GIF]",
+        gifUrl: gifData.url,
+        gifPreview: gifData.preview,
+        gifTitle: gifData.title,
+        isGif: true,
+        sender: user.userName,
+        timestamp: serverTimestamp(),
+        room: currentRoom,
+      });
+      
+      // 關閉 GIF 選擇器
+      setShowGifPicker(false);
+    } catch (error) {
+      console.error("發送 GIF 時出錯：", error);
+    }
+  };
+
   return (
     <div className="container">
       <div className="leftContainer">
@@ -322,13 +347,30 @@ const GroupChatRoom = () => {
                     className={`message ${message.isUnsent ? "unsent-message" : ""} ${message.sender === user?.userName ? "own-message" : ""}`}
                     onClick={() => handleMessageClick(message)}
                   >
-                    <strong>{message.sender}</strong>: {message.text}
+                    <strong>{message.sender}</strong>: 
+                    {message.isGif ? (
+                      <div className="gif-message-container">
+                        <img 
+                          src={message.gifUrl} 
+                          alt={message.gifTitle || "GIF"} 
+                          className="message-gif" 
+                        />
+                      </div>
+                    ) : (
+                      message.text
+                    )}
                     {message.isUnsent && <span className="unsent-tag">（已收回）</span>}
                   </div>
                 ))
               )}
             </div>
             <div className="inputContainer">
+              <button 
+                className="gif-button"
+                onClick={() => setShowGifPicker(true)}
+              >
+                GIF
+              </button>
               <input
                 type="text"
                 placeholder="Type your message..."
@@ -343,6 +385,15 @@ const GroupChatRoom = () => {
           </>
         )}
       </div>
+
+      {/* GIF 選擇器 */}
+      {showGifPicker && (
+        <Gif 
+          onGifSelect={handleGifSelect}
+          onClose={() => setShowGifPicker(false)}
+        />
+      )}
+      
       {selectedMessage && (
         <Unsend
           message={selectedMessage}
