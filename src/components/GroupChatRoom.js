@@ -29,8 +29,22 @@ const GroupChatRoom = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [isLoadingMes, setIsLoadingMes] = useState(false);
-  const [isProfileVisible, setIsProfileVisible] = useState(false); // 新增狀態
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
   const navigate = useNavigate();
+
+  // 請求通知權限
+  useEffect(() => {
+    const requestNotificationPermission = async () => {
+      if ("Notification" in window && Notification.permission !== "granted") {
+        try {
+          await Notification.requestPermission();
+        } catch (err) {
+          console.error("Notification permission error:", err);
+        }
+      }
+    };
+    requestNotificationPermission();
+  }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -41,7 +55,7 @@ const GroupChatRoom = () => {
           const data = doc.data();
           return {
             id: doc.id,
-            uid: data.uid || doc.id, // 確保 uid 存在
+            uid: data.uid || doc.id,
             userName: data.userName || "Unknown User",
             phone: data.phone || "Unknown",
             address: data.address || "Unknown",
@@ -72,7 +86,6 @@ const GroupChatRoom = () => {
           };
           setUser(currentUserData);
 
-          // 確保用戶加入 General 群組
           const generalGroupRef = doc(db, "groups", "General");
           const generalGroupSnap = await getDoc(generalGroupRef);
 
@@ -84,7 +97,6 @@ const GroupChatRoom = () => {
               });
             }
           } else {
-            // 如果 General 群組不存在，創建它
             await setDoc(generalGroupRef, {
               groupName: "General",
               members: [currentUserData.uid],
@@ -101,7 +113,7 @@ const GroupChatRoom = () => {
   }, []);
 
   useEffect(() => {
-    if (!currentRoom) return;
+    if (!currentRoom || !user) return;
 
     setIsLoadingMes(true);
 
@@ -111,6 +123,8 @@ const GroupChatRoom = () => {
       orderBy("timestamp", "asc")
     );
 
+    let lastSeenId = null;
+
     const unsubscribeMessages = onSnapshot(
       messagesQuery,
       (snapshot) => {
@@ -118,6 +132,24 @@ const GroupChatRoom = () => {
           id: doc.id,
           ...doc.data(),
         }));
+
+        // 通知邏輯（只對新訊息，且非自己發的）
+        const lastMessage = fetchedMessages[fetchedMessages.length - 1];
+        if (
+          lastMessage &&
+          lastMessage.sender !== user.userName &&
+          lastMessage.id !== lastSeenId &&
+          Notification.permission === "granted"
+        ) {
+          console.log("New message received:", lastMessage);
+          new Notification(`💬 ${lastMessage.sender}`, {
+            body: lastMessage.text,
+          });
+          lastSeenId = lastMessage.id;
+        }else{
+          console.log("No new message or it's from the same user.");
+        }
+
         setMessages(fetchedMessages);
         setIsLoadingMes(false);
       },
@@ -128,7 +160,7 @@ const GroupChatRoom = () => {
     );
 
     return () => unsubscribeMessages();
-  }, [currentRoom]);
+  }, [currentRoom, user]);
 
   useEffect(() => {
     if (!user) return;
@@ -142,12 +174,10 @@ const GroupChatRoom = () => {
           ...doc.data(),
         }));
 
-        // 過濾出包含當前用戶的群組
-        const filteredGroups = groupsList.filter(
-          (group) => group.members.includes(user.uid)
+        const filteredGroups = groupsList.filter((group) =>
+          group.members.includes(user.uid)
         );
 
-        // 確保 General 群組存在於 rooms 中
         if (!filteredGroups.some((group) => group.groupName === "General")) {
           filteredGroups.push({
             groupName: "General",
@@ -169,7 +199,7 @@ const GroupChatRoom = () => {
     const message = {
       text: newMessage,
       sender: user.userName,
-      timestamp: serverTimestamp(), // 使用 serverTimestamp 來取得正確的時間戳
+      timestamp: serverTimestamp(),
       room: currentRoom,
     };
     try {
@@ -196,10 +226,10 @@ const GroupChatRoom = () => {
         {isProfileVisible ? (
           <Profile
             user={user}
-            onback={() => setIsProfileVisible(false)} // 返回聊天室
-            updateUser={(updateData) => {
-              setUser((prev) => ({ ...prev, ...updateData }));
-            }} // 更新用戶資料
+            onback={() => setIsProfileVisible(false)}
+            updateUser={(updateData) =>
+              setUser((prev) => ({ ...prev, ...updateData }))
+            }
           />
         ) : (
           <>
@@ -208,7 +238,7 @@ const GroupChatRoom = () => {
                 className="userHead"
                 src="/img/userheadpng/1.png"
                 alt="User"
-                onClick={() => setIsProfileVisible(true)} // 點擊切換到 Profile
+                onClick={() => setIsProfileVisible(true)}
               />
               <h2>{user ? user.userName : "Guest"}</h2>
               <img
