@@ -5,11 +5,25 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(to bottom right, #b7d5e7, #e2c6f8 ,#eb96a7);
+  background: linear-gradient(45deg, #eb96a7 ,#b7d5e7, #e2c6f8 ,#e5ed91);
   height: 100vh;
+  animation: gradientAnimation 3s ease infinite;
+  background-size: 400% 400%;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
