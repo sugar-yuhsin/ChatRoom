@@ -1,61 +1,268 @@
 .gif-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-  }
-  
+  position: fixed;
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease;
+}
+
+.gif-container {
+  width: 600px;
+  max-width: 90%;
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.4s ease;
+}
+
+.gif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.gif-header h3 {
+  font-size: 18px;
+  color: #2c3e50;
+  margin: 0;
+  font-weight: 600;
+}
+
+.gif-close-btn {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  transition: color 0.2s ease, transform 0.2s ease;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gif-close-btn:hover {
+  color: #333;
+  transform: scale(1.1);
+  background-color: #f0f0f0;
+}
+
+.gif-search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.gif-search input {
+  flex: 1;
+  padding: 12px 15px;
+  border-radius: 50px;
+  border: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  font-size: 14px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.gif-search input:focus {
+  outline: none;
+  border-color: #b7d5e7;
+  box-shadow: 0 0 0 3px rgba(183, 213, 231, 0.2);
+}
+
+.gif-search button {
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(to right, #b7d5e7, #e2c6f8);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.gif-search button:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.gif-search button:active {
+  transform: translateY(0);
+}
+
+.gif-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 5px;
+  scrollbar-width: thin;
+  scrollbar-color: #b7d5e7 #f0f0f0;
+}
+
+.gif-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gif-grid::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 10px;
+}
+
+.gif-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #b7d5e7, #e2c6f8);
+  border-radius: 10px;
+}
+
+.gif-item {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.gif-item:hover {
+  transform: scale(1.08);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+}
+
+.gif-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #888;
+  flex-direction: column;
+}
+
+.gif-loading::before {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #e2c6f8;
+  border-top-color: #b7d5e7;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+.gif-footer {
+  margin-top: 15px;
+  text-align: right;
+  font-size: 12px;
+  color: #999;
+  padding-top: 12px;
+  border-top: 1px solid #eaeaea;
+}
+
+.gif-no-results {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+  font-style: italic;
+}
+
+/* 消息中的 GIF 樣式 */
+.gif-message-container {
+  margin-top: 10px;
+  max-width: 300px;
+}
+
+.message-gif {
+  width: 100%;
+  border-radius: 15px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.message-gif:hover {
+  transform: scale(1.03);
+}
+
+.gif-button {
+  padding: 10px 15px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(to right, #e2c6f8, #eb96a7);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-right: 10px;
+}
+
+.gif-button:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gif-button:active {
+  transform: translateY(0);
+}
+
+/* 動畫效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 響應式設計 */
+@media screen and (max-width: 768px) {
   .gif-container {
-    width: 600px;
-    background: #fff;
-    border-radius: 8px;
-    padding: 16px;
-  }
-  
-  .gif-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  
-  .gif-close-btn {
-    font-size: 20px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .gif-search {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  
-  .gif-search input {
-    flex: 1;
-    padding: 6px;
+    width: 500px;
   }
   
   .gif-grid {
-    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
     max-height: 300px;
-    overflow-y: auto;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .gif-container {
+    width: 90%;
+    padding: 15px;
   }
   
-  .gif-item {
+  .gif-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    max-height: 250px;
+  }
+  
+  .gif-search {
+    flex-direction: column;
+  }
+  
+  .gif-search button {
     width: 100%;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: transform 0.2s;
   }
-  
-  .gif-item:hover {
-    transform: scale(1.05);
-  }
-  
+}

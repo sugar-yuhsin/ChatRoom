@@ -1,71 +1,90 @@
-# Getting Started with Create React App
+# Chat Room 
+## Basic components
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- **Membership Mechanism**
+  - Email Sign Up ：
+    如果帳號沒有Sign up 過，要先sign up，Sign up 要填寫userName/phone/address等資料，按下Sign up 會直接登入。
+  - Email Sign In ：如果有註冊過則可以直接登入
+  - 可點選上面Sign in / Sign up進行切換，下面按鈕字樣也會隨之改變
+  - Email 格式要對，密碼要大於6碼
+  
+  <img src = "./RoomShot/Signin.png">
+   <img src = "./RoomShot/Signup.png">
 
-## Available Scripts
+- **Host your Firebase page**
+  - Done!
+  <img src ="./RoomShot/Deploy.png">
 
-In the project directory, you can run:
+- **Database read/write**
+  - Done!
+  - using firestore
+  <img src = "./RoomShot/DataBase.png">
 
-### `npm start`
+- **RWD**
+  - Done!把所有物件縮小並改為豎排
+  <img src = "./RoomShot/RWD_big.png">
+  <img src = "./RoomShot/RWD_small.png">
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Git**
+<img src ="./RoomShot/Git.png">
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+- **Chatroom**
+  - General 是所有用戶的群組
+  - icon : 創建群組(粉）/ 搜尋訊息（藍）/登出（綠）
+  - 左邊欄位是當前用戶所在的所有群組
+  - 右邊是聊天室
+  <img src = "./RoomShot/ChatRoom.png">
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+## Advanced components
+- **Using React**
+    - yeap!
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Sign Up/In with Google or other third-party accounts**
+- 按下這個icon可以用google登入，但是username是email @前的字串，其他資料為unknown，之後可以在profile設定
+<img src = "./RoomShot/Google.png">
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **Add Chrome notification**
+    -  Mac的話要把右上角通知叫出來才看得到，google chrome、arc 的預設通知都是關閉要打開才看得到，記得關勿擾 
+<img src = "./RoomShot/Notification.png">
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
+- **Use CSS animation**
+    - 背景顏色漸變
+    - 打字機動畫
+    <img src = "./RoomShot/Css_background.png">
+    - 變顏色的"Enter Some keywords"
+    <img src = "./RoomShot/Css_search.png">
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **Deal with problems when sending code**
+    - Done! 
+<img src = "./RoomShot/Problem.png">
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Bonus Components 
+- **User profile**:
+  - 點選左上角頭像可以進入自己帳號的profile，可以在這邊編輯userName/phone/address
+  <img src = "./RoomShot/Profile_enter.png">
+<img src = "./RoomShot/Profile.png">
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Unsend message**:
+  - 點選訊息，會跳出選擇匡，只能收回自己的訊息
+  <img src = "./RoomShot/Unsend.png">
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **Search for message**:
+    - 按放大鏡進入搜尋頁面
+  - 輸入好想搜尋的字詞後，要按serch才會開始搜尋
+  - 搜尋時會有"searching..."的小動畫
+    <img src = "./RoomShot/Search.png">
 
-### Code Splitting
+- **Send gif from Tenor API**:
+    -   按下gif按鈕進入選擇gif頁面
+    -  可以搜尋並選擇想要的gif
+    - gif 頁面的排版和滑動有很多很多CSS
+        <img src = "./RoomShot/Gif.png">
+        <img src = "./RoomShot/Gif_button.png">
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# ChatRoom

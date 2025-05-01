@@ -89,7 +89,7 @@ h1 {
     width: 0;
     animation: typing 5s steps(30) 1s infinite, blink 500ms step-end infinite;
     color: #002c5c;
-    font-weight: bold;
+      font-weight: bold;
 
     
 }
