@@ -1,0 +1,205 @@
+/* 基本樣式 */
+.container {
+  display: flex;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #b7d5e7, #e2c6f8 ,#eb96a7);
+}
+
+.leftContainer {
+  width: 30%;
+  background-color: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rightContainer {
+  flex: 1;
+  background-color: white;
+  border-radius: 20px;
+  padding: 30px;
+  margin: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.userHead {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.icon {
+  width: 30px;
+  height: 30px;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+.roomList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.roomItem {
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.chatBox {
+  flex: 1;
+  border-radius: 10px;
+  padding: 10px;
+  overflow-y: scroll;
+  margin-bottom: 20px;
+}
+
+.message {
+  margin-bottom: 10px;
+  text-align: left;
+  background-color: #f1f6ff;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.inputContainer {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.line {
+  width: 100%;
+  background-color: #ccc;
+  height: 1px;
+  border: none;
+}
+
+.loading {
+  font-size: 18px;
+  color: #007bff;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Media Queries for RWD */
+@media screen and (max-width: 1024px) {
+  .container {
+    flex-direction: column; /* 將左右容器堆疊 */
+    height: auto; /* 自動調整高度 */
+    padding: 10px; /* 增加內邊距 */
+    justify-content: center;
+    align-items: center;
+    /* background-color:linear-gradient(to bottom right, #b7d5e7, #e2c6f8 ,#eb96a7); ; */
+  }
+  .leftContainer {
+    width: 90%; /* 左容器佔滿寬度 */
+    height: 10%; /* 自動調整高度 */
+    margin: 10px 0;
+  }
+  .rightContainer {
+    width: 90%; /* 右容器佔滿寬度 */
+    margin: 10px 0;
+  }
+  .userHead {
+    width: 40px; /* 縮小用戶頭像 */
+    height: 40px;
+  }
+  .icon {
+    width: 25px; /* 縮小圖標 */
+    height: 25px;
+  }
+  .roomItem {
+    font-size: 14px; /* 縮小房間列表字體 */
+  }
+  .message {
+    font-size: 14px; /* 縮小訊息字體 */
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column; /* 將左右容器堆疊 */
+  }
+  .leftContainer {
+    width: 90%; /* 左容器佔滿寬度 */
+    height: 10%;
+    margin: 10px 0;
+  }
+  .rightContainer {
+    width: 90%; /* 右容器佔滿寬度 */
+    margin: 10px 0;
+  }
+  .userHead {
+    width: 35px; /* 縮小用戶頭像 */
+    height: 35px;
+  }
+  .icon {
+    width: 20px; /* 縮小圖標 */
+    height: 20px;
+  }
+  .roomItem {
+    font-size: 12px; /* 縮小房間列表字體 */
+  }
+  .message {
+    font-size: 12px; /* 縮小訊息字體 */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .container {
+    flex-direction: column; /* 將左右容器堆疊 */
+  }
+  .leftContainer {
+    width: 90%; /* 左容器佔滿寬度 */
+    height: 20%;
+    margin: 10px 0;
+  }
+  .rightContainer {
+    width: 90%; /* 右容器佔滿寬度 */
+    margin: 10px 0;
+  }
+  .userHead {
+    width: 30px; /* 縮小用戶頭像 */
+    height: 30px;
+  }
+  .icon {
+    width: 15px; /* 縮小圖標 */
+    height: 15px;
+  }
+  .roomItem {
+    font-size: 10px; /* 縮小房間列表字體 */
+  }
+  .message {
+    font-size: 10px; /* 縮小訊息字體 */
+  }
+}

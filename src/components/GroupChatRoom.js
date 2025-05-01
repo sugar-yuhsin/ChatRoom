@@ -1,10 +1,24 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, serverTimestamp, updateDoc, setDoc } from "firebase/firestore";
-import CreateGroup from "./CreateGroup"; 
+import {
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  doc,
+  getDoc,
+  serverTimestamp,
+  updateDoc,
+  setDoc,
+} from "firebase/firestore";
+import CreateGroup from "./CreateGroup";
 import { useNavigate } from "react-router-dom";
 import Profile from "./Profile";
+import "../css/GroupChatRoom.css"; // 匯入 CSS 檔案
 
 const GroupChatRoom = () => {
   const [rooms, setRooms] = useState(["General"]);
@@ -155,7 +169,7 @@ const GroupChatRoom = () => {
     const message = {
       text: newMessage,
       sender: user.userName,
-      timestamp: serverTimestamp(),  // 使用 serverTimestamp 來取得正確的時間戳
+      timestamp: serverTimestamp(), // 使用 serverTimestamp 來取得正確的時間戳
       room: currentRoom,
     };
     try {
@@ -177,22 +191,21 @@ const GroupChatRoom = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.leftContainer}>
+    <div className="container">
+      <div className="leftContainer">
         {isProfileVisible ? (
           <Profile
             user={user}
             onback={() => setIsProfileVisible(false)} // 返回聊天室
             updateUser={(updateData) => {
               setUser((prev) => ({ ...prev, ...updateData }));
-            }
-            } // 更新用戶資料
+            }} // 更新用戶資料
           />
         ) : (
           <>
-            <div style={styles.userInfo}>
+            <div className="userInfo">
               <img
-                style={styles.userHead}
+                className="userHead"
                 src="/img/userheadpng/1.png"
                 alt="User"
                 onClick={() => setIsProfileVisible(true)} // 點擊切換到 Profile
@@ -201,25 +214,24 @@ const GroupChatRoom = () => {
               <img
                 src="/img/icon/create-group.png"
                 alt="Create Group"
-                style={styles.icon}
+                className="icon"
                 onClick={() => setIsCreatingGroup(true)}
               />
               <img
                 src="/img/icon/log-out.png"
                 alt="Logout"
-                style={styles.icon}
+                className="icon"
                 onClick={handleLogout}
               />
             </div>
-            <hr style={styles.line} />
-            <ul style={styles.roomList}>
+            <hr className="line" />
+            <ul className="roomList">
               {rooms.map((room, index) => (
                 <li
                   key={index}
-                  style={{
-                    ...styles.roomItem,
-                    backgroundColor: currentRoom === room ? "#f0f0f0" : "white",
-                  }}
+                  className={`roomItem ${
+                    currentRoom === room ? "activeRoom" : ""
+                  }`}
                   onClick={() => setCurrentRoom(room)}
                 >
                   {room}
@@ -230,7 +242,7 @@ const GroupChatRoom = () => {
         )}
       </div>
 
-      <div style={styles.rightContainer}>
+      <div className="rightContainer">
         {isCreatingGroup ? (
           <CreateGroup
             allUsers={allUsers}
@@ -243,27 +255,27 @@ const GroupChatRoom = () => {
         ) : (
           <>
             <h2>{currentRoom} Room</h2>
-            <hr style={styles.line} />
-            <div style={styles.chatBox}>
+            <hr className="line" />
+            <div className="chatBox">
               {isLoadingMes ? (
-                <p style={styles.loading}>Loading messages...</p>
+                <p className="loading">Loading messages...</p>
               ) : (
                 messages.map((message) => (
-                  <div key={message.id} style={styles.message}>
+                  <div key={message.id} className="message">
                     <strong>{message.sender}</strong>: {message.text}
                   </div>
                 ))
               )}
             </div>
-            <div style={styles.inputContainer}>
+            <div className="inputContainer">
               <input
                 type="text"
                 placeholder="Type your message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                style={styles.input}
+                className="input"
               />
-              <button onClick={handleSendMessage} style={styles.button}>
+              <button onClick={handleSendMessage} className="button">
                 Send
               </button>
             </div>
@@ -272,188 +284,6 @@ const GroupChatRoom = () => {
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: "flex",
-    height: "100vh",
-  },
-  leftContainer: {
-    width: "30%",
-    backgroundColor: "white",
-    borderRadius: "20px",
-    padding: "30px",
-    margin: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-  },
-  rightContainer: {
-    flex: 1,
-    backgroundColor: "white",
-    borderRadius: "20px",
-    padding: "30px",
-    margin: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    display: "flex",
-    flexDirection: "column",
-  },
-  userInfo: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "20px",
-  },
-  userHead: {
-    width: "50px",
-    height: "50px",
-    borderRadius: "50%",
-    marginRight: "10px",
-  },
-  icon: {
-    width: "30px",
-    height: "30px",
-    marginLeft: "10px",
-    cursor: "pointer",
-  },
-  roomList: {
-    listStyleType: "none",
-    padding: 0,
-  },
-  roomItem: {
-    padding: "10px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginBottom: "10px",
-    textAlign: "center",
-    transition: "background-color 0.3s ease",
-  },
-  chatBox: {
-    flex: 1,
-    borderRadius: "10px",
-    padding: "10px",
-    overflowY: "scroll",
-    marginBottom: "20px",
-  },
-  message: {
-    marginBottom: "10px",
-    textAlign: "left",
-    backgroundColor: "#f1f6ff",
-    padding: "20px",
-    borderRadius: "10px",
-  },
-  inputContainer: {
-    display: "flex",
-    gap: "10px",
-  },
-  input: {
-    flex: 1,
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  button: {
-    padding: "10px 20px",
-    borderRadius: "5px",
-    border: "none",
-    backgroundColor: "#007bff",
-    color: "white",
-    cursor: "pointer",
-  },
-  line: {
-    width: "100%",
-    backgroundColor: "#ccc",
-    height: "1px",
-    border: "none",
-  },
-  loading: {
-    fontSize: "18px",
-    color: "#007bff",
-    textAlign: "center",
-    marginTop: "20px",
-  },
-
-  // Media Queries for RWD
-  "@media screen and (max-width: 1024px)": {
-    container: {
-      flexDirection: "column", // 將左右容器堆疊
-    },
-    leftContainer: {
-      width: "100%", // 左容器佔滿寬度
-      margin: "10px 0",
-    },
-    rightContainer: {
-      width: "100%", // 右容器佔滿寬度
-      margin: "10px 0",
-    },
-    userHead: {
-      width: "40px", // 縮小用戶頭像
-      height: "40px",
-    },
-    icon: {
-      width: "25px", // 縮小圖標
-      height: "25px",
-    },
-    roomItem: {
-      fontSize: "14px", // 縮小房間列表字體
-    },
-    message: {
-      fontSize: "14px", // 縮小訊息字體
-    },
-  },
-  "@media screen and (max-width: 768px)": {
-    container: {
-      flexDirection: "column", // 將左右容器堆疊
-    },
-    leftContainer: {
-      width: "100%", // 左容器佔滿寬度
-      margin: "10px 0",
-    },
-    rightContainer: {
-      width: "100%", // 右容器佔滿寬度
-      margin: "10px 0",
-    },
-    userHead: {
-      width: "35px", // 縮小用戶頭像
-      height: "35px",
-    },
-    icon: {
-      width: "20px", // 縮小圖標
-      height: "20px",
-    },
-    roomItem: {
-      fontSize: "12px", // 縮小房間列表字體
-    },
-    message: {
-      fontSize: "12px", // 縮小訊息字體
-    },
-  },
-  "@media screen and (max-width: 480px)": {
-    container: {
-      flexDirection: "column", // 將左右容器堆疊
-    },
-    leftContainer: {
-      width: "100%", // 左容器佔滿寬度
-      margin: "10px 0",
-    },
-    rightContainer: {
-      width: "100%", // 右容器佔滿寬度
-      margin: "10px 0",
-    },
-    userHead: {
-      width: "30px", // 縮小用戶頭像
-      height: "30px",
-    },
-    icon: {
-      width: "15px", // 縮小圖標
-      height: "15px",
-    },
-    roomItem: {
-      fontSize: "10px", // 縮小房間列表字體
-    },
-    message: {
-      fontSize: "10px", // 縮小訊息字體
-    },
-  },
 };
 
 export default GroupChatRoom;

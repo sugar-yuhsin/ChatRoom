@@ -1,12 +1,18 @@
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth , db} from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword , GoogleAuthProvider , signInWithPopup } from "firebase/auth";
-import { doc , setDoc , getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import "../css/SignAndLogin.css"; // 匯入 CSS 檔案
 
 const SignAndLogIn = () => {
   const navigate = useNavigate();
-  const [isSignIn, setIsSignIn] = useState(true); // 修正拼寫
+  const [isSignIn, setIsSignIn] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userName, setUserName] = useState("");
@@ -38,7 +44,7 @@ const SignAndLogIn = () => {
 
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
-          userName:userName ||email.split("@")[0],
+          userName: userName || email.split("@")[0],
           phone: phone || "unknown",
           address: address || "unknown",
           email: email,
@@ -63,7 +69,7 @@ const SignAndLogIn = () => {
     }
   };
 
-  const handleGoogleSignIn =  async ()=> {
+  const handleGoogleSignIn = async () => {
     console.log("Google Sign In");
     const provider = new GoogleAuthProvider();
     try {
@@ -73,9 +79,8 @@ const SignAndLogIn = () => {
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       console.log("Google Sign In", user);
-      
+
       if (!userDocSnap.exists()) {
-        // 如果文件不存在，創建新文件
         await setDoc(userDocRef, {
           uid: user.uid,
           userName: user.displayName || user.email.split("@")[0],
@@ -84,12 +89,6 @@ const SignAndLogIn = () => {
           email: user.email,
         });
       }
-      // await setDoc(doc(db, "users", user.uid), {
-      //   userName: user.displayName || email.split("@")[0],
-      //   phone: user.phoneNumber || "unknown",
-      //   address:  "unknown",
-      //   email: user.email,
-      // } , { merge: true });
       navigate("/chatroom");
     } catch (error) {
       console.error("Error signing in with Google", error);
@@ -97,47 +96,39 @@ const SignAndLogIn = () => {
   };
 
   return (
-    <div style={styles.box}>
-      <h1 style={styles.h1}>GO CHAT !</h1>
-      <div style={styles.toggleContainer}>
+    <div className="box">
+      <h1 className="h1">GO CHAT !</h1>
+      <div className="toggleContainer">
         <span
           onClick={() => setIsSignIn(true)}
-          style={{
-            ...styles.toggleOption,
-            cursor: "pointer",
-            borderBottom: isSignIn ? "3px solid #9fd5e1" : "none",
-          }}
+          className={`toggleOption ${isSignIn ? "active" : ""}`}
         >
           Sign In
         </span>
         <span
           onClick={() => setIsSignIn(false)}
-          style={{
-            ...styles.toggleOption,
-            cursor: "pointer",
-            borderBottom: !isSignIn ? "3px solid #9fd5e1" : "none",
-          }}
+          className={`toggleOption ${!isSignIn ? "active" : ""}`}
         >
           Sign Up
         </span>
       </div>
       {loading ? (
-        <p style={styles.loading}>Loading...</p>
+        <p className="loading">Loading...</p>
       ) : (
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleSubmit} className="form">
           <input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            style={styles.input}
+            className="input"
           />
           <input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
+            className="input"
           />
           {!isSignIn && (
             <>
@@ -146,38 +137,37 @@ const SignAndLogIn = () => {
                 placeholder="User Name"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                style={styles.input}
+                className="input"
               />
               <input
                 type="text"
                 placeholder="Phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                style={styles.input}
+                className="input"
               />
               <input
                 type="text"
                 placeholder="Address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                style={styles.input}
+                className="input"
               />
-              
             </>
           )}
-          <div style ={styles.submitcontainer}>
+          <div className="submitcontainer">
             <button
               type="submit"
-              style={{
-                ...styles.submit,
-                background: isHovered ? "#dfd8d8" : "white",
-              }}
+              className={`submit ${isHovered ? "hovered" : ""}`}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
               {isSignIn ? "Sign In" : "Sign Up"}
             </button>
-            <img src="/img/icon/google.jpg" alt="Google" style={{ width: "30px", height: "30px", marginTop: "10px" }} 
+            <img
+              src="/img/icon/google.jpg"
+              alt="Google"
+              className="googleIcon"
               onClick={handleGoogleSignIn}
             />
           </div>
@@ -185,108 +175,6 @@ const SignAndLogIn = () => {
       )}
     </div>
   );
-};
-
-const styles = {
-  box: {
-    width: "30%",
-    background: "white",
-    borderRadius: "10px",
-    padding: "20px",
-    margin: "10% auto",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    textAlign: "center",
-  },
-  toggleContainer: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "20px",
-    marginBottom: "20px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-  },
-  input: {
-    padding: "10px",
-    background: "#fffafa",
-    borderRadius: "50px",
-    border: "0px solid #ccc",
-    width: "40%",
-    height: "20px",
-    margin: "0 auto",
-  },
-  submit: {
-    border: "2px solid rgb(191, 198, 199)",
-    background: "white",
-    height: "40px",
-    width: "20%",
-    margin: "0 auto",
-    cursor: "pointer",
-    transition: "background-color 0.3s ease",
-  },
-  h1: {
-    fontSize: "10.5rem !important", //no change
-    fontWeight: "bold",
-    color: "#002c5c",
-    marginBottom: "20px",
-  },
-  loading: {
-    fontSize: "18px",
-    color: "#007bff",
-    textAlign: "center",
-    marginTop: "20px 0",
-  },
-  submitcontainer: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  // Media Queries for RWD
-  "@media (max-width: 1024px)": {
-    box: {
-      width: "50%", // 調整寬度
-      margin: "5% auto",
-    },
-    input: {
-      width: "60%", // 調整輸入框寬度
-    },
-    h1: {
-      fontSize: "8rem", // 縮小標題字體
-    },
-  },
-  "@media (max-width: 768px)": {
-    box: {
-      width: "70%", // 調整寬度
-      margin: "5% auto",
-    },
-    input: {
-      width: "80%", // 調整輸入框寬度
-    },
-    h1: {
-      fontSize: "6rem", // 縮小標題字體
-    },
-    submit: {
-      width: "40%", // 調整按鈕寬度
-    },
-  },
-  "@media (max-width: 480px)": {
-    box: {
-      width: "90%", // 調整寬度
-      margin: "5% auto",
-    },
-    input: {
-      width: "90%", // 調整輸入框寬度
-    },
-    h1: {
-      fontSize: "4rem", // 縮小標題字體
-    },
-    submit: {
-      width: "60%", // 調整按鈕寬度
-    },
-  },
 };
 
 export default SignAndLogIn;

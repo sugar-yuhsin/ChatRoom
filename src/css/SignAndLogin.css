@@ -1,0 +1,129 @@
+/* 基本樣式 */
+.box {
+  width: 30%;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10% auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.toggleContainer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input {
+  padding: 10px;
+  background: #fffafa;
+  border-radius: 50px;
+  border: 0px solid #ccc;
+  width: 40%;
+  height: 20px;
+  margin: 0 auto;
+}
+
+.submit {
+  border: 2px solid rgb(191, 198, 199);
+  background: white;
+  height: 40px;
+  width: 20%;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+h1 {
+  font-size: 3rem ;
+  font-weight: bold;
+  color: #002c5c;
+  margin-bottom: 20px;
+}
+
+.loading {
+  font-size: 18px;
+  color: #007bff;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.submitcontainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Google 圖標樣式 */
+.googleIcon {
+  width: 30px;
+  height: 30px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* 動態按鈕樣式 */
+.submit.hovered {
+  background-color: #dfd8d8;
+}
+
+/* 動態選項樣式 */
+.toggleOption.active {
+  border-bottom: 3px solid #9fd5e1;
+}
+
+/* Media Queries for RWD */
+@media (max-width: 1024px) {
+  .box {
+    width: 50%; /* 調整寬度 */
+    margin: 5% auto;
+  }
+  .input {
+    width: 60%; /* 調整輸入框寬度 */
+  }
+  h1 {
+    font-size: 3rem; /* 縮小標題字體 */
+  }
+}
+
+@media (max-width: 768px) {
+  .box {
+    width: 70%; /* 調整寬度 */
+    margin: 5% auto;
+  }
+  .input {
+    width: 80%; /* 調整輸入框寬度 */
+  }
+  h1 {
+    font-size: 2rem; /* 縮小標題字體 */
+  }
+  .submit {
+    width: 40%; /* 調整按鈕寬度 */
+  }
+}
+
+@media (max-width: 480px) {
+  .box {
+    width: 50%; /* 調整寬度 */
+    margin: 5% auto;
+  }
+  .input {
+    width: 90%; /* 調整輸入框寬度 */
+  }
+  h1 {
+    font-size: 1rem; /* 縮小標題字體 */
+  }
+  .submit {
+    width: 50%; /* 調整按鈕寬度 */
+    height: 50px; /* 調整按鈕高度 */
+    font-size: 16px; /* 調整字體大小 */
+  }
+}
