@@ -54,7 +54,7 @@
     - 背景顏色漸變
     - 打字機動畫
     <img src = "./RoomShot/Css_background.png">
-    - 變顏色的"Enter Some keywords"
+    -   變顏色的"Enter Some keywords"
     <img src = "./RoomShot/Css_search.png">
 
 - **Deal with problems when sending code**
