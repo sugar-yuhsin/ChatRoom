@@ -111,6 +111,83 @@
   margin-top: 20px;
 }
 
+/* 收回訊息相關樣式 */
+.own-message {
+  background-color: #f8e9f3;
+  cursor: pointer;
+}
+
+.own-message:hover {
+  background-color: #f8d4ec;
+}
+
+.unsent-message {
+  background-color: #f0f0f0;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.unsent-tag {
+  font-size: 12px;
+  color: #999;
+  margin-left: 5px;
+}
+
+.unsend-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.unsend-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.unsend-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  min-width: 300px;
+  text-align: center;
+}
+
+.unsend-button, .unsend-cancel {
+  padding: 8px 16px;
+  margin: 10px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.unsend-button {
+  background-color: #ff3b30;
+  color: white;
+}
+
+.unsend-button:disabled {
+  background-color: #ffa19a;
+  cursor: not-allowed;
+}
+
+.unsend-cancel {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
 /* Media Queries for RWD */
 @media screen and (max-width: 1024px) {
   .container {

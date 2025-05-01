@@ -97,7 +97,7 @@ const SignAndLogIn = () => {
 
   return (
     <div className="box">
-      <h1 className="h1">GO CHAT !</h1>
+      <div className="typewriter">GO CHAT !</div>
       <div className="toggleContainer">
         <span
           onClick={() => setIsSignIn(true)}

@@ -19,6 +19,7 @@ import CreateGroup from "./CreateGroup";
 import { useNavigate } from "react-router-dom";
 import Profile from "./Profile";
 import "../css/GroupChatRoom.css"; // 匯入 CSS 檔案
+import Unsend from "./Unsend";
 
 const GroupChatRoom = () => {
   const [rooms, setRooms] = useState(["General"]);
@@ -30,6 +31,7 @@ const GroupChatRoom = () => {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [isLoadingMes, setIsLoadingMes] = useState(false);
   const [isProfileVisible, setIsProfileVisible] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const navigate = useNavigate();
 
   // 請求通知權限
@@ -220,6 +222,16 @@ const GroupChatRoom = () => {
     }
   };
 
+  const handleMessageClick = (message) => {
+    if (message.sender === user.userName) {
+      setSelectedMessage(message);
+    }
+  };
+
+  const handleCloseMessage = () => {
+    setSelectedMessage(null);
+  };
+
   return (
     <div className="container">
       <div className="leftContainer">
@@ -291,8 +303,13 @@ const GroupChatRoom = () => {
                 <p className="loading">Loading messages...</p>
               ) : (
                 messages.map((message) => (
-                  <div key={message.id} className="message">
+                  <div 
+                    key={message.id} 
+                    className={`message ${message.isUnsent ? "unsent-message" : ""} ${message.sender === user?.userName ? "own-message" : ""}`}
+                    onClick={() => handleMessageClick(message)}
+                  >
                     <strong>{message.sender}</strong>: {message.text}
+                    {message.isUnsent && <span className="unsent-tag">（已收回）</span>}
                   </div>
                 ))
               )}
@@ -312,6 +329,13 @@ const GroupChatRoom = () => {
           </>
         )}
       </div>
+      {selectedMessage && (
+        <Unsend
+          message={selectedMessage}
+          currentUser={user}
+          onClose={handleCloseMessage}
+        />
+      )}
     </div>
   );
 };

@@ -80,6 +80,20 @@ h1 {
   border-bottom: 3px solid #9fd5e1;
 }
 
+.typewriter{
+    font-family: monospace;
+    font-size: 3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 2px solid #000;
+    width: 0;
+    animation: typing 5s steps(30) 1s infinite, blink 500ms step-end infinite;
+    color: #002c5c;
+    font-weight: bold;
+
+    
+}
+
 /* Media Queries for RWD */
 @media (max-width: 1024px) {
   .box {
@@ -125,5 +139,19 @@ h1 {
     width: 50%; /* 調整按鈕寬度 */
     height: 50px; /* 調整按鈕高度 */
     font-size: 16px; /* 調整字體大小 */
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes blink {
+  50% {
+    border-color: transparent;
   }
 }
