@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import Profile from "./Profile";
 import "../css/GroupChatRoom.css"; // 匯入 CSS 檔案
 import Unsend from "./Unsend";
+import Search from "./Search";
 
 const GroupChatRoom = () => {
   const [rooms, setRooms] = useState(["General"]);
@@ -32,6 +33,8 @@ const GroupChatRoom = () => {
   const [isLoadingMes, setIsLoadingMes] = useState(false);
   const [isProfileVisible, setIsProfileVisible] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [isSearchVisible, setIsSearchVisible] = useState(false); // 新增這一行
+
   const navigate = useNavigate();
 
   // 請求通知權限
@@ -243,7 +246,12 @@ const GroupChatRoom = () => {
               setUser((prev) => ({ ...prev, ...updateData }))
             }
           />
-        ) : (
+        ) : isSearchVisible ? (
+          <Search 
+            user={user}
+            onClose={() => setIsSearchVisible(false)}
+          />
+        ): (
           <>
             <div className="userInfo">
               <img
@@ -258,6 +266,12 @@ const GroupChatRoom = () => {
                 alt="Create Group"
                 className="icon"
                 onClick={() => setIsCreatingGroup(true)}
+              />
+              <img
+              src="/img/icon/search.png"
+              alt="Search"
+              className="icon"
+              onClick={() => setIsSearchVisible(true)}
               />
               <img
                 src="/img/icon/log-out.png"
